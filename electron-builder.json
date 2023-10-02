@@ -1,0 +1,6 @@
+{
+	"files": ["dist/**/*", "electron-dist/**/*"],
+	"directories": {
+		"output": "out"
+	}
+}
