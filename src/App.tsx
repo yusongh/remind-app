@@ -5,7 +5,8 @@ type FieldType = {
   timeInterval: number
 }
 
-let intervalId: number = 0
+let intervalId = 0
+let lockScreenTimeoutId = 0
 
 const showNotification = () => {
   const notification = new Notification('时间到，活动下！')
@@ -33,7 +34,22 @@ const App: React.FC = () => {
     setIsCountdown(false)
   }, [])
 
+  // 锁屏超过两小时则停止通知
+  const lockScreen = useCallback(() => {
+    lockScreenTimeoutId = window.setTimeout(() => {
+      console.log('锁屏->停止通知')
+      stopNotification()
+    }, 2 * 60 * 60 * 1000)
+  }, [])
+
   useEffect(() => {
+    // 监听系统锁屏
+    window.electronAPI.onSystemLockScreen(lockScreen)
+    // 监听系统解除锁屏
+    window.electronAPI.onSystemUnlockScreen(() => {
+      lockScreenTimeoutId && clearTimeout(lockScreenTimeoutId)
+    })
+
     return () => {
       stopNotification()
     }

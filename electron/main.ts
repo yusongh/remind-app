@@ -1,5 +1,6 @@
 import { app, BrowserWindow } from 'electron'
 import path from 'node:path'
+import { registerSystemEvent } from './system-event'
 
 const createWindow = () => {
   const win = new BrowserWindow({
@@ -11,13 +12,17 @@ const createWindow = () => {
   })
   
   if (process.env.ENV === 'dev') {
-    win.loadURL("http://localhost:5174")
+    win.loadURL("http://localhost:5173")
     win.webContents.openDevTools();
   } else {
     win.loadFile(path.join(__dirname, '../dist/index.html'))
   }
+
+  return win
 }
 
 app.whenReady().then(() => {
-  createWindow()
+  const mainWindow = createWindow()
+
+  registerSystemEvent(mainWindow)
 })
