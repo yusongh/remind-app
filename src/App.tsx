@@ -9,9 +9,12 @@ let intervalId = 0
 let lockScreenTimeoutId = 0
 
 const showNotification = () => {
-  const notification = new Notification('时间到，活动下！')
+  const nowTime = new Date()
+  const notification = new Notification('时间到，活动下！', {
+    body: `当前的时间为${nowTime}`
+  })
   notification.onshow = () => {
-    console.log('当前时间为：' + new Date())
+    console.log('当前时间为：' + nowTime)
   }
 }
 
