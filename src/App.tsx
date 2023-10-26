@@ -7,6 +7,8 @@ type FieldType = {
 
 let intervalId = 0
 let lockScreenTimeoutId = 0
+let isLockScreenStopNotification = false // 锁屏后停止了通知
+let currentFormData: FieldType = { timeInterval: 30 }
 
 const showNotification = () => {
   const nowTime = new Date()
@@ -42,8 +44,14 @@ const App: React.FC = () => {
     lockScreenTimeoutId = window.setTimeout(() => {
       console.log('锁屏->停止通知')
       stopNotification()
+      isLockScreenStopNotification = true
     }, 2 * 60 * 60 * 1000)
   }, [])
+
+  const startNotification = (formData: FieldType) => {
+    startInterval(formData)
+    setIsCountdown(true)
+  }
 
   useEffect(() => {
     // 监听系统锁屏
@@ -51,17 +59,16 @@ const App: React.FC = () => {
     // 监听系统解除锁屏
     window.electronAPI.onSystemUnlockScreen(() => {
       lockScreenTimeoutId && clearTimeout(lockScreenTimeoutId)
+      if (isLockScreenStopNotification) {
+        startNotification(currentFormData)
+      }
+      isLockScreenStopNotification = false
     })
 
     return () => {
       stopNotification()
     }
   }, [stopNotification])
-
-  const onFinish = (formData: FieldType) => {
-    startInterval(formData)
-    setIsCountdown(true)
-  }
 
   return (
     <>
@@ -70,9 +77,10 @@ const App: React.FC = () => {
         labelCol={{ span: 8 }}
         wrapperCol={{ span: 16 }}
         style={{ maxWidth: 600 }}
-        initialValues={{ timeInterval: 30 }}
-        onFinish={onFinish}
+        initialValues={currentFormData}
+        onFinish={startNotification}
         autoComplete="off"
+        onValuesChange={(_, allValue) => currentFormData = allValue}
       >
         <Form.Item<FieldType>
           label="时间间隔"
