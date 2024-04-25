@@ -87,7 +87,7 @@ const App: React.FC = () => {
           name="timeInterval"
           rules={[{ required: true, message: '请输入时间间隔！' }]}
         >
-          <Input />
+          <Input disabled={isCountdown} />
         </Form.Item>
 
         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
