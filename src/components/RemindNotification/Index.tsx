@@ -69,7 +69,6 @@ const startInterval = ({timeInterval}: FieldType) => {
 }
 
 let intervalId = 0
-let lockScreenTimeoutId = 0
 let isLockScreenStopNotification = false // 锁屏后停止了通知
 let currentFormData: FieldType = { timeInterval: 30 }
 
@@ -81,36 +80,34 @@ const RemindNotification: React.FC<PropsType> = (props) => {
     setIsCountdown(false)
   }, [])
 
-  // 锁屏超过两小时则停止通知
-  const lockScreen = useCallback(() => {
-    lockScreenTimeoutId = window.setTimeout(() => {
-      console.log('锁屏->停止通知')
-      stopNotification()
-      isLockScreenStopNotification = true
-    }, 2 * 60 * 60 * 1000)
-  }, [])
-
   const startNotification = (formData: FieldType) => {
     startInterval(formData)
     setIsCountdown(true)
   }
 
   useEffect(() => {
-    // 监听系统锁屏
-    window.electronAPI.onSystemLockScreen(lockScreen)
-    // 监听系统解除锁屏
-    window.electronAPI.onSystemUnlockScreen(() => {
-      lockScreenTimeoutId && clearTimeout(lockScreenTimeoutId)
+    const lockScreen = () => {
+      // TODO: 该回调函数会被执行多次，后续需想办法解决！！
+      console.log('----------', isCountdown)
+      // 锁屏后马上停止通知
+      if (isCountdown) {
+        stopNotification()
+        isLockScreenStopNotification = true
+      }
+    }
+
+    const unlockScreen = () => {
       if (isLockScreenStopNotification) {
         startNotification(currentFormData)
       }
       isLockScreenStopNotification = false
-    })
-
-    return () => {
-      stopNotification()
     }
-  }, [stopNotification])
+
+    // 监听系统锁屏
+    window.electronAPI.onSystemLockScreen(lockScreen)
+    // 监听系统解除锁屏
+    window.electronAPI.onSystemUnlockScreen(unlockScreen)
+  }, [isCountdown])
 
   useEffect(() => {
     restTime = props.restTime
