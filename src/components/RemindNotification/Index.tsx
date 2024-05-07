@@ -139,7 +139,7 @@ const RemindNotification: React.FC<PropsType> = (props) => {
           </Button>
         </Form.Item>
         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-          <Button type="primary" onClick={stopNotification}>
+          <Button type="primary" onClick={stopNotification} disabled={!isCountdown}>
             暂停提示
           </Button>
         </Form.Item>
