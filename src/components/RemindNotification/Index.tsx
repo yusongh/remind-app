@@ -1,18 +1,27 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { Button, Form, Input } from 'antd'
+import { Button, Form, Input, Checkbox } from 'antd'
 import type { FieldType as RestTimeFieldType } from '../RestTimeConfig/Index'
 import dayjs from 'dayjs'
 import isBetween from 'dayjs/plugin/isBetween'
 dayjs.extend(isBetween)
 
 type FieldType = {
-  timeInterval: number
+  timeInterval: number,
+  tipsContent: string,
+  isNeedPromptSound: boolean
 }
 
 interface PropsType {
   restTime: RestTimeFieldType
 }
 
+let intervalId = 0
+let isLockScreenStopNotification = false // 锁屏后停止了通知
+let currentFormData: FieldType = {
+  timeInterval: 30,
+  tipsContent: '时间到，活动下！',
+  isNeedPromptSound: true
+}
 let restTime: RestTimeFieldType = {
   startTime: '',
   endTime: ''
@@ -43,8 +52,10 @@ const showNotification = () => {
   if (isOnRestTime()) return false
 
   const nowTime = new Date()
-  const notification = new Notification('时间到，活动下！', {
-    body: `当前的时间为${nowTime}`
+  const notification = new Notification(currentFormData.tipsContent, {
+    body: `当前的时间为${nowTime}`,
+    icon: '/logo.png',
+    silent: !currentFormData.isNeedPromptSound
   })
   notification.onshow = () => {
     console.log('当前时间为：' + nowTime)
@@ -67,10 +78,6 @@ const startInterval = ({timeInterval}: FieldType) => {
     showNotification()
   }, timeInterval * 60 * 1000)
 }
-
-let intervalId = 0
-let isLockScreenStopNotification = false // 锁屏后停止了通知
-let currentFormData: FieldType = { timeInterval: 30 }
 
 const RemindNotification: React.FC<PropsType> = (props) => {
   const [isCountdown, setIsCountdown] = useState(false)
@@ -125,14 +132,28 @@ const RemindNotification: React.FC<PropsType> = (props) => {
         autoComplete="off"
         onValuesChange={(_, allValue) => currentFormData = allValue}
       >
-        <Form.Item<FieldType>
+        <Form.Item
           label="时间间隔"
           name="timeInterval"
           rules={[{ required: true, message: '请输入时间间隔！' }]}
         >
           <Input disabled={isCountdown} />
         </Form.Item>
-
+        <Form.Item
+          label="提示内容"
+          name="tipsContent"
+          rules={[{ required: true, message: '请输入提示内容！' }]}
+        >
+          <Input />
+        </Form.Item>
+        <Form.Item
+          label="是否需要提示音"
+          name="isNeedPromptSound"
+          rules={[{ required: true, message: '请选择是否需要提示音！' }]}
+          valuePropName="checked"
+        >
+          <Checkbox />
+        </Form.Item>
         <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
           <Button type="primary" htmlType="submit" loading={isCountdown}>
             开始提示
